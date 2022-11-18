@@ -1,7 +1,5 @@
 FROM ubuntu:16.04
 
-RUN apt-get update && apt-get install -y python python-pip
-
 RUN pip install --upgrade setuptools
 RUN pip install ez_setup
 

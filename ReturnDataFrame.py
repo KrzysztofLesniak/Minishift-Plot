@@ -36,3 +36,6 @@ class ReturnDataFrame:
 
     def returnValues(self):
         return self.df['C02']
+
+    def returnDataframe(self):
+        return self.df

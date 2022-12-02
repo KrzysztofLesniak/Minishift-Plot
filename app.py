@@ -1,5 +1,9 @@
+import pandas as pd
 from flask import Flask, render_template
-import ReturnDataFrame
+from ReturnDataFrame import ReturnDataFrame
+import plotly
+import plotly.express as px
+import json
 
 app = Flask(__name__)
 
@@ -16,12 +20,17 @@ def index():
 
 @app.route('/line')
 def line():
-    rdf = ReturnDataFrame.ReturnDataFrame()
-    line_labels = rdf.returnDate()
-    line_values = rdf.returnValues()
-    return render_template('line_chart.html', title='Trends in Atmospheric Carbon Dioxide', max=420, min=330,
-                           labels=line_labels,
-                           values=line_values)
+
+    rdf = ReturnDataFrame()
+    data = rdf.returnDataframe()
+
+    # Create Bar chart
+    fig = px.line(data_frame=data)
+
+    # Create graphJSON
+    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+    return render_template('line_chart.html', graphJSON=graphJSON)
 
 
 if __name__ == '__main__':

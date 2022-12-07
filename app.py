@@ -1,6 +1,6 @@
 import pandas as pd
 from flask import Flask, render_template
-from ReturnDataFrame import ReturnDataFrame
+from ReturnInputData import ReturnDataFrame
 import plotly
 import plotly.express as px
 import json
@@ -24,7 +24,7 @@ def line():
     rdf = ReturnDataFrame()
     data = rdf.returnDataframe()
 
-    # Create Bar chart
+    # Create Line chart
     fig = px.line(data_frame=data)
 
     # Create graphJSON

@@ -4,8 +4,58 @@ from ReturnInputData import ReturnDataFrame
 import plotly
 import plotly.express as px
 import json
+import plotly.graph_objects as go
 
 app = Flask(__name__)
+rdf = ReturnDataFrame()
+
+layout = dict(
+    xaxis=dict(
+        showline=True,
+        showgrid=True,
+        showticklabels=True,
+        linecolor='white',
+        linewidth=2
+    ),
+    yaxis=dict(
+        titlefont=dict(
+            family='Rockwell',
+            size=12,
+            color='white',
+        ),
+        showline=True,
+        showgrid=True,
+        showticklabels=True,
+        linecolor='white',
+        linewidth=2,
+        ticks='outside',
+        tickfont=dict(
+            family='Rockwell',
+            size=12,
+            color='white',
+        ),
+    ),
+    showlegend=True,
+    template='plotly_dark',
+    xaxis_title="Date",
+    yaxis_title="CO₂ mole fraction (ppm)",
+    height=800,
+    legend_title_text="",
+    legend=dict(
+        yanchor="top",
+        y=0.99,
+        xanchor="left",
+        x=0.01,
+        font_size=20)
+)
+
+annotations = [dict(xref='paper', yref='paper', x=0.5, y=1.05,
+
+                    xanchor='center', yanchor='bottom',
+                    font=dict(family='Rockwell',
+                              size=26,
+                              color='white'),
+                    showarrow=False)]
 
 
 # Flask test
@@ -16,9 +66,7 @@ def index():
 
 @app.route('/')
 def chart():
-
     # Import data from DataFrame
-    rdf = ReturnDataFrame()
     data = rdf.returnDataframe()
 
     # Current time to mark today on the plot
@@ -28,33 +76,48 @@ def chart():
     # Create Line chart
     fig = px.line(data, x="Date", y=["Measurement", "Prediction"])
 
-    # Create vertical line
-    fig.add_vline(x=datetime.strptime(date_time, "%m/%d/%Y").timestamp() * 1000,
-                  line_width=3, line_dash="dash", line_color="green",
-                  annotation_text="Today", annotation_position="bottom left")
-
     # Chart layout parameters
-    fig.update_layout(title_text='Global Monthly Mean CO₂ Concentration', title_x=0.5,
-                      width=1600, height=800,
-                      xaxis_title="Date",
-                      yaxis_title="CO₂ mole fraction (ppm)",
-                      legend=dict(
-                          yanchor="top",
-                          y=0.99,
-                          xanchor="left",
-                          x=0.01,
-                          title=""),
-                      font=dict(
-                          family="Courier New, monospace",
-                          size=24,
-                          color="RebeccaPurple"
-                      ))
-    fig.update_yaxes(automargin=True)
+    fig.update_layout(layout, annotations=annotations)
 
-    # Create graphJSON
-    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+    fig.update_annotations(text="Global Monthly Mean CO₂ Concentration")
 
-    return render_template('line_chart.html', graphJSON=graphJSON)
+    # Create vertical line
+    fig.add_vline(x=datetime.strptime(date_time, "%m/%d/%Y").timestamp() * 1000
+                  , line_width=3, line_dash="dash", line_color="green"
+                  , annotation_text="Today", annotation_font_size=20
+                  , annotation_position="bottom left"
+                  )
+
+    # Create graph_json
+    graph_json = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+    return render_template('line_chart.html', graphJSON=graph_json)
+
+
+@app.route('/testData')
+def testDataChart():
+    # Import data from DataFrame
+    data = rdf.returnTestDataframe()
+
+    # Current time to mark today on the plot
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(go.Scatter(x=data['Date'], y=data["Train prediction"],
+                                        mode='lines',
+                                        name='Train prediction')))
+    fig.add_trace(go.Scatter(x=data['Date'], y=data["Test prediction"],
+                             mode='lines',
+                             name='Test prediction'))
+    fig.add_trace(go.Scatter(go.Scatter(x=data['Date'], y=data["Actual Value"],
+                                        mode='lines',
+                                        name='Actual Value')))
+    # Chart layout parameters
+    fig.update_layout(layout, annotations=annotations)
+    fig.update_annotations(text="Global Monthly Mean CO₂ Concentration - Test")
+
+    # Create graph_json
+    graph_json = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+    return render_template('line_chart.html', graphJSON=graph_json)
 
 
 if __name__ == '__main__':
